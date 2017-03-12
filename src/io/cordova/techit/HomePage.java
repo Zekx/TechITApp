@@ -4,13 +4,19 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
+import android.support.v4.widget.DrawerLayout;
 import android.view.MenuInflater;
+import android.support.v4.app.ActionBarDrawerToggle;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -26,8 +32,11 @@ public class HomePage extends AppCompatActivity {
     public static final String MyPREFERENCES = "MyPrefs" ;
     SharedPreferences sharedpreferences;
 
-    LinearLayout layout;
-    Button createTicket;
+    private LinearLayout layout;
+    private Button createTicket;
+    private ListView navList;
+    private ActionBarDrawerToggle mDrawerToggle;
+    private DrawerLayout mDrawerLayout;
     private boolean[] sortBy = {true, false, false};
 
     int id;
@@ -55,6 +64,7 @@ public class HomePage extends AppCompatActivity {
         setContentView(R.layout.activity_home_page);
 
         layout = (LinearLayout) findViewById(R.id.ticketView);
+        navList = (ListView) findViewById(R.id.navList);
         LinearLayout.LayoutParams llp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
         llp.setMargins(0, 0, 0, 15); // llp.setMargins(left, top, right, bottom);
 
@@ -171,6 +181,41 @@ public class HomePage extends AppCompatActivity {
         }catch(Exception e){
             e.printStackTrace();
         }
+
+        this.setUpDrawer();
+    }
+
+    protected void setUpDrawer(){
+        String[] choices = {"Logout", "Create Ticket", "Search"};
+        ArrayAdapter<String> mAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, choices);
+        navList.setAdapter(mAdapter);
+        navList.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+            }
+        });
+
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.drawable.nav_icon, R.string.drawer_open, R.string.drawer_close) {
+
+            /** Called when a drawer has settled in a completely open state. */
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                getSupportActionBar().setTitle("Navigation!");
+                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+            }
+
+            /** Called when a drawer has settled in a completely closed state. */
+            public void onDrawerClosed(View view) {
+                super.onDrawerClosed(view);
+                getSupportActionBar().setTitle("Welcome " + getIntent().getStringExtra("firstname") + " " + getIntent().getStringExtra("lastname"));
+                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+            }
+        };
+        mDrawerToggle.setDrawerIndicatorEnabled(true);
+        mDrawerLayout.setDrawerListener(mDrawerToggle);
 
         setTitle("Welcome " + getIntent().getStringExtra("firstname") + " " + getIntent().getStringExtra("lastname"));
     }

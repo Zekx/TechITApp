@@ -105,7 +105,8 @@ public class Login extends AppCompatActivity {
             progressDialog.setIndeterminate(false);
             progressDialog.dismiss();
 
-            output.setText("There was a problem connecting to the server");
+
+            output.setText("Hello, there was a problem connecting to the server");
             //Refreshes the window.
             getWindow().getDecorView().findViewById(android.R.id.content).invalidate();
         }
@@ -163,7 +164,7 @@ public class Login extends AppCompatActivity {
                     }
                 }
                 else{
-                    output.setText("There was a problem connecting to the server");
+                    output.setText(responseData.getString("error"));
 
                     //Refreshes the window.
                     getWindow().getDecorView().findViewById(android.R.id.content).invalidate();
@@ -194,13 +195,14 @@ public class Login extends AppCompatActivity {
         //Using http://[localhost]:8080/springmvc/AndroidLogin for debugging purposes.
         //final String URL = "http://localhost:8080/springmvc/AndroidLogin?username="+username+"&password="+password;
 
-        //final String URL = "http://192.168.42.173:8080/springmvc/AndroidLogin?username="+username+"&password="+password;
+        //final String URL = "http://192.168.43.111:8080/springmvc/AndroidLogin?username="+username.trim()+"&password="+password.trim();
         final String URL = "http://cs3.calstatela.edu:4046/techit/AndroidLogin?username="+username.trim()+"&password="+password.trim();
         System.out.println("Accessing... " + URL);
 
         Thread log = new Thread(new Runnable() {
             @Override
             public void run() {
+
                 try{
                     URL url = new URL(URL);
                     URLConnection conn = url.openConnection();

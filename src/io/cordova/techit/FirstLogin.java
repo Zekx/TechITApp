@@ -138,6 +138,8 @@ public class FirstLogin extends AppCompatActivity {
             System.out.println("Could not encode the department!");
         }
 
+        //final String URL = "http://192.168.43.111:8080/springmvc/FirstAndroidLoginUpdate?username="+getIntent().getStringExtra("user")
+        //        +"&firstName="+fn+"&lastName="+ln+"&email="+em+"&phoneNumber="+pn+"&department="+ encodedDP;
         final String URL = "http://cs3.calstatela.edu:4046/techit/FirstAndroidLoginUpdate?username="+getIntent().getStringExtra("user")
                 +"&firstName="+fn+"&lastName="+ln+"&email="+em+"&phoneNumber="+pn+"&department="+ encodedDP;
         System.out.println("Accessing... " + URL);
