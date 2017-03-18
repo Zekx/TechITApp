@@ -1,7 +1,10 @@
 package io.cordova.techit;
 
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.ContextMenu;
@@ -39,7 +42,7 @@ public class HomePage extends AppCompatActivity {
     private DrawerLayout mDrawerLayout;
     private boolean[] sortBy = {true, false, false};
 
-    int id;
+    String id;
     String technicians;
     String username;
     String userFirstName = "";
@@ -63,33 +66,21 @@ public class HomePage extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_page);
 
+        createHomepageLayout();
+    }
+
+    public void createHomepageLayout(){
         layout = (LinearLayout) findViewById(R.id.ticketView);
         navList = (ListView) findViewById(R.id.navList);
+        sharedpreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
+
         LinearLayout.LayoutParams llp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
         llp.setMargins(0, 0, 0, 15); // llp.setMargins(left, top, right, bottom);
 
         if(getIntent().getBooleanArrayExtra("sort") != null){
             sortBy = getIntent().getBooleanArrayExtra("sort");
         }
-
-        createTicket = (Button) findViewById(R.id.createTicket);
-        createTicket.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent createPage = new Intent(HomePage.this, CreateTicket.class);
-                createPage.putExtra("firstname", getIntent().getStringExtra("firstname"));
-                createPage.putExtra("lastname", getIntent().getStringExtra("lastname"));
-                createPage.putExtra("phoneNumber", getIntent().getStringExtra("phoneNumber"));
-                createPage.putExtra("email", getIntent().getStringExtra("email"));
-                if(getIntent().getStringExtra("department") != null){
-                    createPage.putExtra("department", getIntent().getStringExtra("department"));
-                }
-
-                startActivity(createPage);
-            }
-        });
-
-        String ticket = getIntent().getStringExtra("tickets");
+        String ticket = sharedpreferences.getString("tickets" , "");
 
         JSONArray ticketJson = new JSONArray();
         try{
@@ -106,7 +97,7 @@ public class HomePage extends AppCompatActivity {
                     System.out.println("item: " + key);
                 }*/
 
-                id = obj.getInt("id");
+                id = obj.getString("id");
                 JSONArray techList = new JSONArray(obj.getString("technicians"));
                 try{
                     for(int j = 0; j < techList.length(); j++){
@@ -127,6 +118,7 @@ public class HomePage extends AppCompatActivity {
                 priority = obj.getString("currentPriority");
                 unitId = obj.getInt("unitId");
                 details = obj.getString("details");
+                technicians = obj.getString("technicians");
 
                 String string = obj.getString("startDate");
                 DateFormat format = new SimpleDateFormat("MMMM d, yyyy");
@@ -185,15 +177,65 @@ public class HomePage extends AppCompatActivity {
         this.setUpDrawer();
     }
 
+    @Override
+    public void onBackPressed() {
+        new AlertDialog.Builder(HomePage.this)
+                .setMessage("Are you sure you want to logout?")
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        HomePage.this.finish();
+
+                        sharedpreferences.edit().clear().commit();
+
+                        Intent intent = new Intent(HomePage.this, Login.class);
+                        startActivity(intent);
+                    }
+                })
+                .setNegativeButton("No", null)
+                .show();
+    }
+
     protected void setUpDrawer(){
-        String[] choices = {"Logout", "Create Ticket", "Search"};
+        String[] choices = {"Logout","______________________", "Create Ticket", "Search"};
         ArrayAdapter<String> mAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, choices);
         navList.setAdapter(mAdapter);
         navList.setOnItemClickListener(new AdapterView.OnItemClickListener(){
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if(position == 0){
+                    new AlertDialog.Builder(HomePage.this)
+                            .setMessage("Are you sure you want to logout?")
+                            .setCancelable(false)
+                            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    HomePage.this.finish();
 
+                                    sharedpreferences.edit().clear().commit();
+
+                                    Intent intent = new Intent(HomePage.this, Login.class);
+                                    startActivity(intent);
+                                }
+                            })
+                            .setNegativeButton("No", null)
+                            .show();
+                }
+                else if(position == 2){
+                    Intent createPage = new Intent(HomePage.this, CreateTicket.class);
+                    createPage.putExtra("firstname", getIntent().getStringExtra("firstname"));
+                    createPage.putExtra("lastname", getIntent().getStringExtra("lastname"));
+                    createPage.putExtra("phoneNumber", getIntent().getStringExtra("phoneNumber"));
+                    createPage.putExtra("email", getIntent().getStringExtra("email"));
+                    if(getIntent().getStringExtra("department") != null){
+                        createPage.putExtra("department", getIntent().getStringExtra("department"));
+                    }
+
+                    startActivity(createPage);
+                }
+                else if (position == 3){
+                    System.out.println("Option "+3);
+                }
             }
         });
 
@@ -203,7 +245,7 @@ public class HomePage extends AppCompatActivity {
             /** Called when a drawer has settled in a completely open state. */
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
-                getSupportActionBar().setTitle("Navigation!");
+                getSupportActionBar().setTitle("TECHIT Navigation");
                 invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
             }
 
@@ -222,7 +264,7 @@ public class HomePage extends AppCompatActivity {
 
     protected void createTicketButton(TextView nBut, LinearLayout.LayoutParams llp){
         nBut.setOnClickListener(new View.OnClickListener(){
-            private int idInner = id;
+            private String idInner = id;
             private String techInner = technicians;
             private String usernameInner = username;
             private String userFirstNameInner = userFirstName;
@@ -247,8 +289,8 @@ public class HomePage extends AppCompatActivity {
                 Intent intent = new Intent(HomePage.this, DisplayTicket.class);
 
                 intent.putExtra("id", idInner);
-                if(technicians != null){
-                    intent.putExtra("technicians", technicians);
+                if(techInner != null){
+                    intent.putExtra("technicians", techInner);
                 }
                 intent.putExtra("username", usernameInner);
                 intent.putExtra("userFirstName", userFirstNameInner);
@@ -272,7 +314,6 @@ public class HomePage extends AppCompatActivity {
                 intent.putExtra("ticketLocation", ticketLocationInner);
                 intent.putExtra("completionDetails", comDetails);
                 intent.putExtra("updates", upd);
-                intent.putExtra("technicians", techInner);
 
                 //Used to determine what the user can do in the next page.
                 intent.putExtra("position", getIntent().getStringExtra("position"));
@@ -302,6 +343,7 @@ public class HomePage extends AppCompatActivity {
                 System.out.println(sortBy[0] + " " + sortBy[1] + " " + sortBy[2]);
                 getIntent().putExtra("sort", sortBy);
                 finish();
+                getIntent().addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                 startActivity(getIntent());
                 break;
             case R.id.sortActive:
@@ -312,6 +354,7 @@ public class HomePage extends AppCompatActivity {
                 System.out.println(sortBy[0] + " " + sortBy[1] + " " + sortBy[2]);
                 getIntent().putExtra("sort", sortBy);
                 finish();
+                getIntent().addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                 startActivity(getIntent());
                 break;
             case R.id.sortCompleted:
@@ -322,9 +365,19 @@ public class HomePage extends AppCompatActivity {
                 System.out.println(sortBy[0] + " " + sortBy[1] + " " + sortBy[2]);
                 getIntent().putExtra("sort", sortBy);
                 finish();
+                getIntent().addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                 startActivity(getIntent());
                 break;
         }
         return true;
+    }
+
+    @Override
+    public void onRestart()
+    {  // After a pause OR at startup
+        super.onResume();
+        //Refresh your stuff here
+        finish();
+        startActivity(getIntent());
     }
 }

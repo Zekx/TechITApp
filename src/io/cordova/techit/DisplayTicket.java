@@ -1,8 +1,11 @@
 package io.cordova.techit;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -15,11 +18,22 @@ import android.widget.Button;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class DisplayTicket extends AppCompatActivity {
+
+    public static final String MyPREFERENCES = "MyPrefs" ;
+    SharedPreferences sharedpreferences;
 
     LinearLayout layoutVert;
     LinearLayout layoutHori;
@@ -27,16 +41,23 @@ public class DisplayTicket extends AppCompatActivity {
     Button takeBtn;
     Button updateBtn;
 
+    private InputStream inStr = null;
+    private String text = "main";
+    private String responseText = "";
+    private JSONObject responseData;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_display_ticket);
 
+        sharedpreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
+
         layoutVert = (LinearLayout) findViewById(R.id.ticketInfo);
         layoutHori = (LinearLayout) findViewById(R.id.buttonMap);
 
         TextView txt = new TextView(this);
-        txt.setText("Ticket ID#: " + getIntent().getIntExtra("id", 0));
+        txt.setText("Ticket ID#: " + getIntent().getStringExtra("id"));
         txt.setBackgroundColor(0xffAAAAAA);
         txt.setTextColor(0xff000000);
         txt.setTextSize(18f);
@@ -107,7 +128,23 @@ public class DisplayTicket extends AppCompatActivity {
 
         txt = new TextView(this);
         if(getIntent().getStringExtra("technicians") != null){
-            txt.setText("Technicians: " + getIntent().getStringExtra("technicians"));
+            String list = "";
+            try{
+                JSONArray techniciansOnTicket = new JSONArray(getIntent().getStringExtra("technicians"));
+
+                for(int i = 0; i < techniciansOnTicket.length(); i++){
+                    JSONObject obj = techniciansOnTicket.getJSONObject(i);
+
+                    list = list + obj.getString("firstName") + " " + obj.getString("lastName");
+                    if(i != techniciansOnTicket.length() - 1){
+                        list = list + ", ";
+                    }
+                }
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+
+            txt.setText("Technicians: " + list);
         }
         else{
             txt.setText("Technicians: " + " currently none...");
@@ -200,7 +237,98 @@ public class DisplayTicket extends AppCompatActivity {
         takeBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    boolean alreadyTaken = false;
+                    if(getIntent().getStringExtra("technicians") != null){
+                        String list = "";
+                        try{
+                            JSONArray techniciansOnTicket = new JSONArray(getIntent().getStringExtra("technicians"));
 
+                            for(int i = 0; i < techniciansOnTicket.length(); i++){
+                                JSONObject obj = techniciansOnTicket.getJSONObject(i);
+                                Iterator<String> iter = obj.keys();
+                                /*while(iter.hasNext()){
+                                    String key = iter.next();
+                                    System.out.println("item: " + key);
+                                }*/
+
+                                if(obj.getString("userName").equals(sharedpreferences.getString("user", getIntent().getStringExtra("username")))){
+                                    alreadyTaken = true;
+                                    break;
+                                }
+                            }
+                        }catch(Exception e){
+                            e.printStackTrace();
+                        }
+
+                        if(!alreadyTaken){
+                            new AlertDialog.Builder(DisplayTicket.this)
+                                    .setMessage("Do you want to accept the ticket?")
+                                    .setCancelable(false)
+                                    .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int id) {
+                                            InputStream in = getAccess(sharedpreferences.getString("user", getIntent().getStringExtra("username")), sharedpreferences.getString("unitID", "0"), getIntent().getStringExtra("id"));
+
+                                            if (in == null){
+                                                System.out.println("There was a problem accessing the database!");
+                                            }
+                                            else{
+                                                try{
+                                                    String result = convertStreamToString(in);
+                                                    responseData = new JSONObject(result);
+
+                                                    getIntent().putExtra("id", responseData.getString("id"));
+                                                    getIntent().putExtra("technicians", responseData.getString("technicians"));
+                                                    getIntent().putExtra("username", responseData.getString("username"));
+                                                    getIntent().putExtra("userFirstName", responseData.getString("firstname"));
+                                                    getIntent().putExtra("userLastName", responseData.getString("lastname"));
+                                                    getIntent().putExtra("phoneNumber", responseData.getString("phoneNumber"));
+                                                    getIntent().putExtra("email", responseData.getString("email"));
+                                                    getIntent().putExtra("currentProgess", responseData.getString("currentProgress"));
+                                                    getIntent().putExtra("priority", responseData.getString("priority"));
+                                                    getIntent().putExtra("unit_id", responseData.getString("unitID"));
+                                                    getIntent().putExtra("details", responseData.getString("details"));
+                                                    getIntent().putExtra("startDate", responseData.getString("startDate"));
+                                                    getIntent().putExtra("department", responseData.getString("department"));
+                                                    getIntent().putExtra("endDate", responseData.getString("endDate"));
+                                                    getIntent().putExtra("userFirstName", responseData.getString("firstname"));
+                                                    getIntent().putExtra("lastUpdated", responseData.getString("lastUpdated"));
+                                                    getIntent().putExtra("lastUpdatedTime", responseData.getString("lastUpdatedTime"));
+                                                    getIntent().putExtra("ticketLocation", responseData.getString("ticketLocation"));
+                                                    getIntent().putExtra("updates", responseData.getString("updates"));
+                                                    //Used to determine what the user can do in the next page.
+                                                    getIntent().putExtra("position", responseData.getString("position"));
+
+                                                    SharedPreferences.Editor editor = sharedpreferences.edit();
+                                                    editor.putString("tickets", responseData.getString("updatedTickets"));
+                                                    editor.commit();
+
+                                                    //Refreshes the window.
+                                                    finish();
+                                                    startActivity(getIntent());
+
+                                                }catch (Exception e){
+                                                    System.out.println("There was an error parsing the data!");
+                                                    e.printStackTrace();
+                                                }
+                                            }
+                                        }
+                                    })
+                                    .setNegativeButton("Decline", null)
+                                    .show();
+                        }
+                        else{
+                            AlertDialog alertDialog = new AlertDialog.Builder(DisplayTicket.this).create();
+                            alertDialog.setTitle("Alert");
+                            alertDialog.setMessage("This ticket has already been assigned to you!");
+                            alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                                    new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            dialog.dismiss();
+                                        }
+                                    });
+                            alertDialog.show();
+                        }
+                    }
                 }
             });
 
@@ -212,8 +340,78 @@ public class DisplayTicket extends AppCompatActivity {
                 }
             });
 
+    }
 
+    private static String convertStreamToString(InputStream is) {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        StringBuilder sb = new StringBuilder();
 
+        String line = null;
+        try {
+            while ((line = reader.readLine()) != null) {
+                sb.append(line + "\n");
+            }
+        } catch (IOException e) {
+        } finally {
+            try {
+                is.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return sb.toString();
+    }
 
+    protected InputStream getAccess(String username, String unitID, String ticketID){
+        final String URL = "http://192.168.42.173:8080/springmvc/AndroidAssign?username="+username.trim()+"&androidTechAssign="+ticketID+"&unitID="+unitID;
+        //final String URL = "http://cs3.calstatela.edu:4046/techit/AndroidLogin?username="+username.trim()+"&password="+password.trim();
+        System.out.println("Accessing... " + URL);
+
+        Thread log = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try{
+                    java.net.URL url = new URL(URL);
+                    URLConnection conn = url.openConnection();
+
+                    HttpURLConnection httpConn = (HttpURLConnection) conn;
+                    httpConn.setRequestMethod("POST");
+                    httpConn.setDoInput(true);
+                    httpConn.setDoOutput(true);
+                    httpConn.connect();
+
+                    DataOutputStream dataStream = new DataOutputStream(conn
+                            .getOutputStream());
+
+                    dataStream.writeBytes(text);
+                    dataStream.flush();
+                    dataStream.close();
+
+                    int responseCode = httpConn.getResponseCode();
+                    responseText = "Response code is..." + responseCode + "; OK Code is..." + HttpURLConnection.HTTP_OK;
+                    if (responseCode == HttpURLConnection.HTTP_OK) {
+                        System.out.println("RESPONSE CODE: OK");
+                        inStr = httpConn.getInputStream();
+                    }
+
+                    httpConn.disconnect();
+                }catch(Exception e){
+                    e.printStackTrace();
+                    System.out.println("Connection Failed!");
+                }
+
+            }
+        });
+
+        try{
+            log.start();
+            log.join();
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        System.out.println("Connection to " + URL + " closing.");
+
+        System.out.println(responseText);
+        return inStr;
     }
 }

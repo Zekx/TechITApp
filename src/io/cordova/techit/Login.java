@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.util.Log;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
@@ -37,6 +38,7 @@ public class Login extends AppCompatActivity {
     private TextView output;
     private EditText username;
     private EditText password;
+    private ProgressBar spinner;
 
     public static final String MyPREFERENCES = "MyPrefs" ;
     SharedPreferences sharedpreferences;
@@ -54,6 +56,8 @@ public class Login extends AppCompatActivity {
         output = (TextView) findViewById(R.id.output);
         username = (EditText) findViewById(R.id.usernameField);
         password = (EditText) findViewById(R.id.passwordField);
+        spinner = (ProgressBar)findViewById(R.id.progressBar1);
+        spinner.setVisibility(View.GONE);
 
         sharedpreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
 
@@ -61,6 +65,7 @@ public class Login extends AppCompatActivity {
         butn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                spinner.setVisibility(View.VISIBLE);
                 login(username.getText().toString(), password.getText().toString());
                 //System.out.println(username.getText() + " " + password.getText());
             }
@@ -91,20 +96,12 @@ public class Login extends AppCompatActivity {
         InputStream in = null;
         String text = "";
 
-        final ProgressDialog progressDialog = new ProgressDialog(Login.this);
-        progressDialog.setIndeterminate(true);
-        progressDialog.setMessage("Authenticating...");
-        progressDialog.show();
-
         System.out.println("Now Authenticating...");
 
         //Makes a connection to the web application servlet.
         in = getAccess(username, password);
 
         if(inStr == null){
-            progressDialog.setIndeterminate(false);
-            progressDialog.dismiss();
-
 
             output.setText("Hello, there was a problem connecting to the server");
             //Refreshes the window.
@@ -115,74 +112,65 @@ public class Login extends AppCompatActivity {
                 String result = convertStreamToString(in);
                 responseData = new JSONObject(result);
 
-                progressDialog.setIndeterminate(false);
-                progressDialog.dismiss();
                 SharedPreferences.Editor editor = sharedpreferences.edit();
                 if(!responseData.isNull("firstLogin?")){
                     if(responseData.getBoolean("firstLogin?") == true){
-                        editor.putString("user", responseData.getString("user"));
-                        editor.commit();
+                        spinner.setVisibility(View.GONE);
+                        output.setText("The User is not a technician!");
 
-                        Intent intent = new Intent(this, FirstLogin.class);
-                        intent.putExtra("user", responseData.getString("user"));
-                        intent.putExtra("firstname", responseData.getString("firstname"));
-                        intent.putExtra("lastname", responseData.getString("lastname"));
-                        intent.putExtra("email", responseData.getString("email"));
-                        intent.putExtra("unit_id", responseData.getString("unit_id"));
-                        intent.putExtra("position", responseData.getString("position"));
-                        if(!responseData.isNull("tickets")){
-                            System.out.print("Step 1");
-                            intent.putExtra("tickets", responseData.getString("tickets"));
-                        }
-                        progressDialog.setIndeterminate(false);
-                        progressDialog.dismiss();
-                        startActivity(intent);
-                        finish();
+                        //Refreshes the window.
+                        getWindow().getDecorView().findViewById(android.R.id.content).invalidate();
                     }
                     else{
-                        editor.putString("user", responseData.getString("user"));
-                        editor.commit();
+                        spinner.setVisibility(View.GONE);
+                        if(responseData.getString("position").equals("2")){
+                            editor.putString("user", responseData.getString("user"));
+                            editor.putString("unitID", responseData.getString("unit_id"));
+                            editor.commit();
 
-                        Intent intent = new Intent(this, HomePage.class);
-                        intent.putExtra("user", responseData.getString("user"));
-                        intent.putExtra("firstname", responseData.getString("firstname"));
-                        intent.putExtra("lastname", responseData.getString("lastname"));
-                        intent.putExtra("phoneNumber", responseData.getString("phoneNumber"));
-                        intent.putExtra("email", responseData.getString("email"));
-                        intent.putExtra("unit_id", responseData.getString("unit_id"));
-                        intent.putExtra("position", responseData.getString("position"));
-                        if(!responseData.isNull("department")){
-                            intent.putExtra("department", responseData.getString("department"));
+                            Intent intent = new Intent(this, HomePage.class);
+                            intent.putExtra("user", responseData.getString("user"));
+                            intent.putExtra("firstname", responseData.getString("firstname"));
+                            intent.putExtra("lastname", responseData.getString("lastname"));
+                            intent.putExtra("phoneNumber", responseData.getString("phoneNumber"));
+                            intent.putExtra("email", responseData.getString("email"));
+                            intent.putExtra("unit_id", responseData.getString("unit_id"));
+                            intent.putExtra("position", responseData.getString("position"));
+                            if(!responseData.isNull("department")){
+                                intent.putExtra("department", responseData.getString("department"));
+                            }
+                            if(!responseData.isNull("tickets")){
+                                editor.putString("tickets", responseData.getString("tickets"));
+                                editor.commit();
+                                //intent.putExtra("tickets", responseData.getString("tickets"));
+                            }
+                            startActivity(intent);
+                            finish();
                         }
-                        if(!responseData.isNull("tickets")){
-                            intent.putExtra("tickets", responseData.getString("tickets"));
+                        else{
+                            output.setText("The User is not a technician!");
+
+                            //Refreshes the window.
+                            getWindow().getDecorView().findViewById(android.R.id.content).invalidate();
                         }
-                        progressDialog.setIndeterminate(false);
-                        progressDialog.dismiss();
-                        startActivity(intent);
-                        finish();
                     }
                 }
                 else{
+                    spinner.setVisibility(View.GONE);
                     output.setText(responseData.getString("error"));
 
                     //Refreshes the window.
                     getWindow().getDecorView().findViewById(android.R.id.content).invalidate();
-
-                    progressDialog.setIndeterminate(false);
-                    progressDialog.dismiss();
                 }
                 //System.out.println("Username is..." + responseData.get("user"));
 
             }catch(Exception e){
+                spinner.setVisibility(View.GONE);
                 output.setText("There was a problem connecting to the server");
                 System.out.println("There was an error parsing the data!");
 
                 //Refreshes the window.
                 getWindow().getDecorView().findViewById(android.R.id.content).invalidate();
-
-                progressDialog.setIndeterminate(false);
-                progressDialog.dismiss();
                 e.printStackTrace();
             }
 
@@ -195,14 +183,13 @@ public class Login extends AppCompatActivity {
         //Using http://[localhost]:8080/springmvc/AndroidLogin for debugging purposes.
         //final String URL = "http://localhost:8080/springmvc/AndroidLogin?username="+username+"&password="+password;
 
-        //final String URL = "http://192.168.43.111:8080/springmvc/AndroidLogin?username="+username.trim()+"&password="+password.trim();
-        final String URL = "http://cs3.calstatela.edu:4046/techit/AndroidLogin?username="+username.trim()+"&password="+password.trim();
+        final String URL = "http://192.168.42.173:8080/springmvc/AndroidLogin?username="+username.trim()+"&password="+password.trim();
+        //final String URL = "http://cs3.calstatela.edu:4046/techit/AndroidLogin?username="+username.trim()+"&password="+password.trim();
         System.out.println("Accessing... " + URL);
 
         Thread log = new Thread(new Runnable() {
             @Override
             public void run() {
-
                 try{
                     URL url = new URL(URL);
                     URLConnection conn = url.openConnection();
