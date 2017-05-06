@@ -183,7 +183,7 @@ public class Login extends AppCompatActivity {
         //Using http://[localhost]:8080/springmvc/AndroidLogin for debugging purposes.
         //final String URL = "http://localhost:8080/springmvc/AndroidLogin?username="+username+"&password="+password;
 
-        final String URL = "http://192.168.42.173:8080/springmvc/AndroidLogin?username="+username.trim()+"&password="+password.trim();
+        final String URL = "http://10.85.46.56:8080/techit/AndroidLogin?username="+username.trim()+"&password="+password.trim();
         //final String URL = "http://cs3.calstatela.edu:4046/techit/AndroidLogin?username="+username.trim()+"&password="+password.trim();
         System.out.println("Accessing... " + URL);
 

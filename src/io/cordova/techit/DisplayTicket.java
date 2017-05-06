@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TableLayout;
@@ -286,6 +287,8 @@ public class DisplayTicket extends AppCompatActivity {
                                                     getIntent().putExtra("currentProgess", responseData.getString("currentProgress"));
                                                     getIntent().putExtra("priority", responseData.getString("priority"));
                                                     getIntent().putExtra("unit_id", responseData.getString("unitID"));
+                                                    Log.d("tag", "UniteID from DisplayTicket response   : " +responseData.getString("unitID") );
+
                                                     getIntent().putExtra("details", responseData.getString("details"));
                                                     getIntent().putExtra("startDate", responseData.getString("startDate"));
                                                     getIntent().putExtra("department", responseData.getString("department"));
@@ -336,6 +339,40 @@ public class DisplayTicket extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     Intent updatePage = new Intent(DisplayTicket.this, UpdateTicket.class);
+                    updatePage.putExtra("user", getIntent().getStringExtra("user"));
+                    Log.d("tag", "User: " +getIntent().getStringExtra("user") );
+
+                    updatePage.putExtra("id", getIntent().getStringExtra("id"));
+                    updatePage.putExtra("technicians", getIntent().getStringExtra("technicians"));
+                    updatePage.putExtra("username", getIntent().getStringExtra("username"));
+
+                    updatePage.putExtra("userFirstName", getIntent().getStringExtra("userFirstName"));
+                    updatePage.putExtra("userLastName", getIntent().getStringExtra("userLastName"));
+                    updatePage.putExtra("phoneNumber", getIntent().getStringExtra("phoneNumber"));
+                    updatePage.putExtra("email", getIntent().getStringExtra("email"));
+                    updatePage.putExtra("currentProgress", getIntent().getStringExtra("currentProgress"));
+                    updatePage.putExtra("priority", getIntent().getStringExtra("priority"));
+                    updatePage.putExtra("unit_id", getIntent().getStringExtra("unit_id"));
+                    Log.d("tag", "UniteID from DisplayTicket: " +getIntent().getStringExtra("unit_id") );
+
+
+
+                    updatePage.putExtra("details", getIntent().getStringExtra("details"));
+                    updatePage.putExtra("startDate", getIntent().getStringExtra("startDate"));
+                    updatePage.putExtra("department",getIntent().getStringExtra("department"));
+                    updatePage.putExtra("endDate", getIntent().getStringExtra("endDate"));
+                    updatePage.putExtra("userFirstName", getIntent().getStringExtra("userFirstName"));
+                    updatePage.putExtra("lastUpdated", getIntent().getStringExtra("lastUpdated"));
+                    updatePage.putExtra("lastUpdatedTime", getIntent().getStringExtra("lastUpdatedTime"));
+                    updatePage.putExtra("ticketLocation", getIntent().getStringExtra("ticketLocation"));
+                    updatePage.putExtra("updates", getIntent().getStringExtra("updates"));
+                    //Used to determine what the user can do in the next page.
+                    updatePage.putExtra("position", getIntent().getStringExtra("position"));
+
+                    Log.d("tag", "Technician: " +getIntent().getStringExtra("technicians") );
+                    Log.d("tag", "User: " +getIntent().getStringExtra("username") );
+
+                    Log.d("tag", "User 2: " +getIntent().getStringExtra("user") );
                     startActivity(updatePage);
                 }
             });
@@ -363,7 +400,7 @@ public class DisplayTicket extends AppCompatActivity {
     }
 
     protected InputStream getAccess(String username, String unitID, String ticketID){
-        final String URL = "http://192.168.42.173:8080/springmvc/AndroidAssign?username="+username.trim()+"&androidTechAssign="+ticketID+"&unitID="+unitID;
+        final String URL = "http://10.85.46.56:8080/techit/AndroidAssign?username="+username.trim()+"&androidTechAssign="+ticketID+"&unitID="+unitID;
         //final String URL = "http://cs3.calstatela.edu:4046/techit/AndroidLogin?username="+username.trim()+"&password="+password.trim();
         System.out.println("Accessing... " + URL);
 

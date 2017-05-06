@@ -40,11 +40,11 @@
                 android:paddingBottom="12dp" />
 
             <Spinner
+                android:id="@+id/statusSpinner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/spinner2"
+                android:background="@android:color/darker_gray"
                 android:entries="@array/progress_array"
-                android:background="@android:color/holo_orange_light"
                 android:paddingBottom="10dp" />
 
             <TextView
@@ -57,19 +57,19 @@
                 android:paddingBottom="12dp" />
 
             <EditText
+                android:id="@+id/detailsText"
                 android:layout_width="match_parent"
                 android:layout_height="126dp"
-                android:inputType="textMultiLine"
-                android:ems="10"
-                android:id="@+id/editText"
                 android:background="@android:color/holo_orange_light"
+                android:ems="10"
+                android:inputType="textMultiLine"
                 android:textColor="@android:color/background_dark" />
 
             <Button
-                android:text="Submit"
+                android:id="@+id/submitButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/submit" />
+                android:text="Submit" />
         </LinearLayout>
     </ScrollView>
 </RelativeLayout>

@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -292,6 +293,7 @@ public class HomePage extends AppCompatActivity {
                 if(techInner != null){
                     intent.putExtra("technicians", techInner);
                 }
+                intent.putExtra("user", getIntent().getStringExtra("user"));
                 intent.putExtra("username", usernameInner);
                 intent.putExtra("userFirstName", userFirstNameInner);
                 intent.putExtra("userLastName", userLastNameInner);
@@ -299,7 +301,9 @@ public class HomePage extends AppCompatActivity {
                 intent.putExtra("email", emailInner);
                 intent.putExtra("currentProgress", currentProgessInner);
                 intent.putExtra("priority", priorityInner);
-                intent.putExtra("unit_id", unitIdInner);
+                intent.putExtra("unit_id", Integer.toString(unitIdInner));
+                Log.d("tag", "UniteID in homepage: " + unitIdInner);
+
                 intent.putExtra("details", detailsInner);
                 intent.putExtra("startDate", sdInner.toString());
                 if(getIntent().hasExtra("department")) {
