@@ -377,6 +377,10 @@ public class DisplayTicket extends AppCompatActivity {
                 }
             });
 
+        String positionCheck = getIntent().getStringExtra("position");
+        if(positionCheck.equals("USER")){
+            layoutHori.removeViewAt(0);
+        }
     }
 
     private static String convertStreamToString(InputStream is) {
@@ -400,7 +404,7 @@ public class DisplayTicket extends AppCompatActivity {
     }
 
     protected InputStream getAccess(String username, String unitID, String ticketID){
-        final String URL = "http://10.85.46.56:8080/techit/AndroidAssign?username="+username.trim()+"&androidTechAssign="+ticketID+"&unitID="+unitID;
+        final String URL = "http://cs3.calstatela.edu:4046/techit/AndroidAssign?username="+username.trim()+"&androidTechAssign="+ticketID+"&unitID="+unitID;
         //final String URL = "http://cs3.calstatela.edu:4046/techit/AndroidLogin?username="+username.trim()+"&password="+password.trim();
         System.out.println("Accessing... " + URL);
 

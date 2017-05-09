@@ -53,6 +53,7 @@ public class HomePage extends AppCompatActivity {
     String currentProgress;
     String priority;
     int unitId;
+    String subject;
     String details;
     Date startDate;
     Date endDate;
@@ -118,6 +119,7 @@ public class HomePage extends AppCompatActivity {
                 currentProgress = obj.getString("currentProgress");
                 priority = obj.getString("currentPriority");
                 unitId = obj.getInt("unitId");
+                subject = obj.getString("subject");
                 details = obj.getString("details");
                 technicians = obj.getString("technicians");
 
@@ -140,7 +142,7 @@ public class HomePage extends AppCompatActivity {
                     System.out.println("ACTIVE");
                     if(!currentProgress.equals("COMPLETED")){
                         TextView nBut = new TextView(this);
-                        nBut.setText("Ticket ID: " + id + "\n" + details);
+                        nBut.setText("Ticket ID: " + id + "\n" + subject);
                         nBut.setTextSize(16f);
                         nBut.setBackgroundColor(0xffffdf00);
                         nBut.setTextColor(0xff000000);
@@ -152,7 +154,7 @@ public class HomePage extends AppCompatActivity {
                     System.out.println("COMPLETED");
                     if(currentProgress.equals("COMPLETED")){
                         TextView nBut = new TextView(this);
-                        nBut.setText("Ticket ID: " + id + "\n" + details);
+                        nBut.setText("Ticket ID: " + id + "\n" + subject);
                         nBut.setTextSize(16f);
                         nBut.setBackgroundColor(0xffffdf00);
                         nBut.setTextColor(0xff000000);
@@ -163,7 +165,7 @@ public class HomePage extends AppCompatActivity {
                 else{
                     System.out.println("RECENT");
                     TextView nBut = new TextView(this);
-                    nBut.setText("Ticket ID: " + id + "\n" + details);
+                    nBut.setText("Ticket ID: " + id + "\n" + subject);
                     nBut.setTextSize(16f);
                     nBut.setBackgroundColor(0xffffdf00);
                     nBut.setTextColor(0xff000000);

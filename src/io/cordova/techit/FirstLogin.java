@@ -94,11 +94,13 @@ public class FirstLogin extends AppCompatActivity {
             error.setText("There was a problem connecting! Try again!");
         }
         else{
+            SharedPreferences.Editor editor = sharedpreferences.edit();
+
             try{
                 String result = convertStreamToString(inStr);
                 responseData = new JSONObject(result);
 
-                if(responseData.getBoolean("Valid")){
+                if(responseData.getBoolean("Valid") == true){
                     Intent intent = new Intent(this, HomePage.class);
                     intent.putExtra("firstname", responseData.getString("firstname"));
                     intent.putExtra("lastname", responseData.getString("lastname"));
@@ -107,6 +109,15 @@ public class FirstLogin extends AppCompatActivity {
                     if(!responseData.getString("department").isEmpty()){
                         intent.putExtra("department", responseData.getString("department"));
                     }
+                    if(!responseData.isNull("department")){
+                        intent.putExtra("department", responseData.getString("department"));
+                    }
+                    if(!responseData.isNull("tickets")){
+                        editor.putString("tickets", responseData.getString("tickets"));
+                        editor.commit();
+                        //intent.putExtra("tickets", responseData.getString("tickets"));
+                    }
+
                     startActivity(intent);
                     finish();
                 }

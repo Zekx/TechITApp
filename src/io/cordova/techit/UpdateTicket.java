@@ -167,7 +167,7 @@ public class UpdateTicket extends AppCompatActivity {
         System.out.println("This first" + ticketID + modifier + updateDetails + progress + change + unitID + username);
 
 
-        final String URL = "http://10.85.46.56:8080/techit/AndroidModify?TicketID="+ticketID+"&Modifier="+modifier+"&NewProgress="+newprogress+"&Change="+change+"&UnitID="+unitID +"&Username="+username+"&UpdateDetails="+updateDetails;
+        final String URL = "http://cs3.calstatela.edu:4046/techit/AndroidModify?TicketID="+ticketID+"&Modifier="+modifier+"&NewProgress="+newprogress+"&Change="+change+"&UnitID="+unitID +"&Username="+username+"&UpdateDetails="+updateDetails;
         //final String URL = "http://cs3.calstatela.edu:4046/techit/AndroidLogin?username="+username.trim()+"&password="+password.trim();
         System.out.println("Accessing... " + URL);
 
